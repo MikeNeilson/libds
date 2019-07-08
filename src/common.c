@@ -1,7 +1,7 @@
 #include "common.h"
 #include <stdarg.h>
 
-ds_allocator_t ds_simple_allocator = {
+ds_allocator_t ds_default_allocator = {
 	malloc,
 	realloc,
 	calloc,

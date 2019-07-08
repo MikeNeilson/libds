@@ -1,19 +1,26 @@
 SRC = $(wildcard *.c)
-OBJ = $(src:.c=.o)
+OBJ = $(SRC:.c=.o)
+
 
 all: libds.so
 
+libds.so: CFLAGS += -DTINYTEST_NO_TEST
 libds.so: $(OBJ)
-	$(CC) -fPIC -shared -o $@ $<
+	$(CC) -fPIC -shared -o $@ $^
 
-.o:.c
-	$(CC) -ansi -fPIC -c $<
+.c.o:
+	$(CC) -ansi -fPIC -c $< -o $@ $(CFLAGS)
 
+.PHONY: test
+test: CFLAGS = -g -fno-builtin-strlen
 test: $(OBJ)
-	$(CC) -o $@ $<
+	$(CC) -o $@ $^ && valgrind --leak-check=full ./test
+
 	
 
+.PHONY: clean
 
 clean: 
-	rm $(OBJ) libds.so
+	rm $(OBJ) libds.so test
+
 

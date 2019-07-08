@@ -38,21 +38,23 @@ typedef struct ds_array_s *ds_array_t;
  *
  *	returns point to a valid ds_array_t structure or NULL
  */
-ds_array_t ds_array_create( size_t elem_size, size_t start_size, int num_args, ... );
+ds_array_t ds_array_create( size_t elem_size, size_t start_size, ... );
 
 /*
  * 
  */
-void ds_array_destroy( ds_array_t array );
+void ds_array_destroy( ds_array_t *array );
 
 void* ds_array_set( ds_array_t array, size_t idx, void *data );
 /*
  * 
  */
 void* ds_array_get( ds_array_t array, size_t idx );
+size_t ds_array_size( ds_array_t array );
+size_t ds_array_capacity( ds_array_t array );
 /*int  ds_array_grow( ds_array_t array, size_t idx ); */
 /*int  ds_array_shrink( ds_array_t array, size_t amount ); */
-void ds_array_foreach( ds_array_t array, ds_traverse_f func, void *user );
+void* ds_array_foreach( ds_array_t array, ds_traverse_f func, void *user );
 
 #endif
 

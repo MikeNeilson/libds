@@ -263,7 +263,7 @@ void Suite##suiteName(TinyTestRegistry* registry)                       \
   TINYTEST_RUN_SUITE(suiteName);                                        \
   TINYTEST_END_MAIN();
 
-#else // TINYTEST_NOTESTING
+#else /* TINYTEST_NOTESTING */
 #define TINYTEST_FALSE_MSG(actual, msg) (void)0 
 #define TINYTEST_FALSE(actual) (void)0 
 #define TINYTEST_TRUE_MSG(actual, msg) (void)0 
@@ -284,7 +284,7 @@ void Suite##suiteName(TinyTestRegistry* registry)                       \
 #define TINYTEST_INTERNAL_RUN_TESTS()
 #define TINYTEST_END_MAIN()
 #define TINYTEST_MAIN_SINGLE_SUITE(suiteName)
-#endif // TINYTEST_NOTESTING
+#endif /* TINYTEST_NOTESTING */
 
 #endif
 
