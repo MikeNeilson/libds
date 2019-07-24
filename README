@@ -1,3 +1,15 @@
 A simple data structure library for C.
 
 Mostly made for me to practice data structures, but also to give me a collections of tools.
+
+
+The data structures available are (or will be)
+
+growable array (working)
+linked list (in progress)
+queue
+stack
+binary tree
+graph
+
+
