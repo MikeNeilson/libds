@@ -183,6 +183,9 @@ void* ds_array_get( ds_array_t array, size_t idx ){
 	if( idx >= array->capacity ){
 		array->err( "index %d is greater than the capacity of the array (%d)", idx, array->capacity  );
 	}
+	if ( idx >= array->size ){
+		array->size = idx+1;
+	}
 	return (array->data + offset);
 }
 /*int  ds_array_grow( ds_array_t array, size_t idx ); */
@@ -273,7 +276,9 @@ void bigval_ctor( void *_obj, ds_allocator_t *allocator ){
 void bigval_dtor( void *_obj, ds_allocator_t *allocator ){
 	bigval *obj = (bigval*)_obj;
 	if( obj->str != NULL ){ 
+		printf("dtor called on %s\n", obj->str);
 		allocator->free( obj->str );
+		obj->str = NULL;
 	}
 }
 
@@ -311,8 +316,9 @@ int test_array_complex_struct( const char *name ){
 	printf("new size %ld", array->size );
 	TINYTEST_ASSERT_MSG( array->capacity == 4, "array did not grow");
 
-	TINYTEST_ASSERT_MSG( memcmp( ds_array_get(array,3), &tmp2, sizeof(bigval) ) == 0, "last val no properly cleared");
-
+	TINYTEST_ASSERT_MSG( memcmp( ds_array_get(array,3), &tmp2, sizeof(bigval) ) == 0, "last val not properly cleared");
+	bigval_dtor(tmp,&ds_default_allocator);
+	ds_default_allocator.free(tmp);
 
 	ds_array_destroy( &array );
 
