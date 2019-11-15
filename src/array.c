@@ -223,7 +223,7 @@ int test_array_create( const char *name ){
 	/*printf("Running %s\n", name );*/
 	ds_array_t arr = NULL;
 	arr = ds_array_create( sizeof(int), 10, DS_END );
-	TINYTEST_ASSERT(arr );
+	TINYTEST_ASSERT_MSG(arr, "array creation failed" );
 	ds_array_destroy( &arr );
 	return 1;
 }
@@ -234,7 +234,7 @@ int test_array_set( const char *name ){
 	arr = ds_array_create( sizeof(int), 10, DS_END );
 	int p = 4;
 	ds_array_set( arr, 0, &p );
-	TINYTEST_ASSERT( *((int*)arr->data) == p );
+	TINYTEST_ASSERT_MSG( *((int*)arr->data) == p, "Unable to correctly set value" );
 	ds_array_destroy( &arr );
 	return 1;
 }
@@ -247,7 +247,7 @@ int test_array_get( const char *name ){
 	arr = ds_array_create( sizeof(int), 10, DS_END );
 	ds_array_set( arr, 3, &p );
 	res = (int*)ds_array_get(arr, 3);
-	TINYTEST_ASSERT( *res == p );
+	TINYTEST_ASSERT_MSG( *res == p, "Unable to get array value" );
 	ds_array_destroy( &arr );
 	return 1;
 }
@@ -256,9 +256,9 @@ int test_array_destroy(const char *name ){
 	/*printf("Running %s\n", name );*/
 	ds_array_t arr = ds_array_create(sizeof(int),10, DS_END);
 
-	TINYTEST_ASSERT( arr );
+	TINYTEST_ASSERT_MSG( arr, "array creation failed" );
 	ds_array_destroy(&arr);
-	TINYTEST_ASSERT( arr==NULL );
+	TINYTEST_ASSERT_MSG( arr==NULL, "array destruction failed" );
 	return 1;
 }
 
@@ -291,7 +291,7 @@ int test_array_complex_struct( const char *name ){
 					    DS_FUNC_CTOR, bigval_ctor,
 					    DS_FUNC_DTOR, bigval_dtor,
 					    DS_END );
-	TINYTEST_ASSERT( array );
+	TINYTEST_ASSERT_MSG( array, "array creation failed" );
 	
 	tmp = ds_array_get(array, 0);
 	tmp->value = 5;
@@ -304,7 +304,7 @@ int test_array_complex_struct( const char *name ){
 	memcpy( tmp->str, "world", 5 );
 
 	tmp = (bigval*)array->data;
-	TINYTEST_ASSERT( strcmp( tmp->str, "hello" ) == 0 );
+	TINYTEST_ASSERT_MSG( strcmp( tmp->str, "hello" ) == 0, "Array member not set" );
 
 
 	tmp = calloc( 1,sizeof(bigval) );
@@ -348,7 +348,7 @@ int test_array_grow( const char *name ){
 
 
 
-TINYTEST_START_SUITE(ArraySuite);
+TINYTEST_START_SUITE(arraysuite);
   TINYTEST_ADD_TEST(test_array_create,NULL,NULL);
   TINYTEST_ADD_TEST(test_array_destroy,NULL,NULL);
   TINYTEST_ADD_TEST(test_array_set,NULL,NULL);
@@ -357,7 +357,7 @@ TINYTEST_START_SUITE(ArraySuite);
   TINYTEST_ADD_TEST(test_array_grow,NULL,NULL);
 TINYTEST_END_SUITE();
 
-TINYTEST_MAIN_SINGLE_SUITE(ArraySuite);
+/*TINYTEST_MAIN_SINGLE_SUITE(ArraySuite);*/
 
 
 #endif

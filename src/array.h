@@ -17,7 +17,8 @@
 #define DS_ARRAY_H
 
 #include "common.h"
-
+#include "tinytest.h"
+TINYTEST_DECLARE_SUITE(arraysuite);
 
 typedef struct ds_array_s *ds_array_t;
 
