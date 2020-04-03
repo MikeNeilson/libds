@@ -184,10 +184,35 @@ int test_list_destroy( const char *name ){
 	return 1;
 }
 
+void copy_int( void **a, void *b, ds_allocator_t *alloc ){
+	*a = alloc->malloc(sizeof(int));
+	
+	*((int*)a) = *((int*)b);
+}
+
+int test_list_insert_back( const char *name ){
+	ds_list_t list = NULL;
+	list = ds_list_create(sizeof(int),DS_FUNC_COPY, copy_int, DS_END);
+	int val = 5;
+	ds_list_insert_back(list, &val );
+	val = 6;
+	ds_list_insert_back(list, &val );
+
+	TINYTEST_ASSERT_MSG( list != NULL, "list creation failed" );
+	TINYTEST_ASSERT_MSG( list->head != NULL, "no elements were inserted");
+	TINYTEST_ASSERT_MSG( list->head->data != NULL, "value wasn't copied" );
+	TINYTEST_ASSERT_MSG( *((int*)list->head->data) == 5, "Value inserted in wrong order" );
+	TINYTEST_ASSERT_MSG( list->tail != NULL, "no elements were inserted");
+	TINYTEST_ASSERT_MSG( list->tail->data != NULL, "value wasn't copied" );
+	TINYTEST_ASSERT_MSG( *((int*)list->tail->data) == 6, "Value inserted in wrong order" );
+	return 1;
+}
+
 
 TINYTEST_START_SUITE(listsuite);
   TINYTEST_ADD_TEST(test_list_create,NULL,NULL);
   TINYTEST_ADD_TEST(test_list_destroy,NULL,NULL);
+  TINYTEST_ADD_TEST(test_list_insert_back,NULL,NULL);
 /*  TINYTEST_ADD_TEST(test_array_set,NULL,NULL);
   TINYTEST_ADD_TEST(test_array_get,NULL,NULL);
   TINYTEST_ADD_TEST(test_array_complex_struct,NULL,NULL);

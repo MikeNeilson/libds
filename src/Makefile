@@ -14,7 +14,10 @@ libds.so: $(OBJ)
 .PHONY: test
 test: CFLAGS = -g -fno-builtin-strlen --std=c99
 test: $(OBJ)
-	$(CC) -o $@ $^ && valgrind --leak-check=full ./test
+	$(CC) -o $@ $^ && ./test
+
+valgrind: test
+	valgrind --leak-check=full ./test
 
 	
 

@@ -22,7 +22,7 @@ extern ds_allocator_t ds_default_allocator;
 /* function pointers */
 typedef int (*ds_comparator_f)( void *a, void *b);
 typedef void (*ds_ctor_f)( void *self, ds_allocator_t *allocator );
-typedef void (*ds_copy_f)( void *to, void *from, ds_allocator_t *allocator );
+typedef void (*ds_copy_f)( void **to, void *from, ds_allocator_t *allocator );
 typedef void (*ds_move_f)( void *to, void *from );
 typedef void (*ds_dtor_f)( void *self, ds_allocator_t *allocator );
 typedef void* (*ds_traverse_f)( void *obj, void *user );
