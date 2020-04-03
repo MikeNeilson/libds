@@ -87,22 +87,24 @@ ds_list_t ds_list_create( size_t start_size, ... ){
 }
 
 
-void  ds_list_destroy( ds_list_t list ){
-	ds_list_node_t cur=list->head,tmp=NULL;
+void  ds_list_destroy( ds_list_t *list ){
+	ds_list_node_t cur=(*list)->head;
+	ds_list_node_t tmp=NULL;
 	while( cur != NULL ){
 		if( cur->next != NULL ){
 			tmp = cur->next;
 		}
-		if( list->dtor != NULL ){
-			list->dtor(cur->data, list->alloc);
-			list->alloc->free(cur->data);
-		}
-		tmp = cur;
-		cur = cur->next;
-		list->alloc->free(tmp);
+		if( (*list)->dtor != NULL ){
+			(*list)->dtor(cur->data, (*list)->alloc);			
+		}	
+		(*list)->alloc->free(cur->data);	
+		cur = tmp;
+		tmp = NULL;
+		(*list)->alloc->free(tmp);
 	}
 
-
+	(*list)->alloc->free(*list);
+	*list = NULL;
 }
 
 /*

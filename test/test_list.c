@@ -36,7 +36,7 @@ int test_list_insert_back( const char *name ){
     TINYTEST_ASSERT_MSG( result == second_value, "2nd value inserted isn't at the end");
 
 
-    ds_list_destroy(list);
+    ds_list_destroy(&list);
     TINYTEST_ASSERT_MSG( list == NULL, "list destruction failed");
 
 	return 1;
