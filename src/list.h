@@ -1,9 +1,7 @@
 #ifndef DS_LIST_H
 #define DS_LIST_H
 #include "common.h"
-#include "tinytest.h"
 
-TINYTEST_DECLARE_SUITE(listsuite);
 
 typedef struct ds_list_s *ds_list_t;
 typedef struct ds_list_node_s *ds_list_node_t;

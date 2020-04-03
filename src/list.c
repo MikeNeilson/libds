@@ -1,10 +1,9 @@
 #include "list.h"
 #include "common.h"
-#include "tinytest.h"
 #include <string.h>
 #include <stdarg.h>
 
-typedef struct ds_list_node_s{
+struct ds_list_node_s{
 	struct ds_list_node_s *next;
 	void *data;
 };
@@ -17,8 +16,7 @@ struct ds_list_s{
 	ds_ctor_f ctor;
 	ds_dtor_f dtor;
 	ds_allocator_t* alloc;
-
-} ;
+};
 
 /*
  * create a new list, data size doesn't matter
@@ -116,7 +114,7 @@ void  ds_list_free_elem( ds_list_t list, void *data ){
  */
 #define ASSIGN_OR_COPY( list,node, elem )\
 	if( (list)->copy != NULL ) { \
-		(list)->copy( (node)->data, (elem), (list)->alloc ); \
+		(list)->copy( &(node)->data, (elem), (list)->alloc ); \
 	} \
 	else { \
 		(node)->data = (elem); \
@@ -164,61 +162,7 @@ void* ds_list_traverse( ds_list_t list, ds_traverse_f func, void *user ){
 	ds_list_node_t tmp = list->head;
 	while( tmp != NULL ){
 		func(tmp->data, user); 
+		tmp = tmp->next;
 	}
 	return NULL;
 }
-
-/**** TESTS *****/
-
-int test_list_create(const char *name){
-	ds_list_t list = NULL;
-	list = ds_list_create(sizeof(int),DS_END);
-
-	TINYTEST_ASSERT_MSG( list != NULL, "List creation failed");
-
-	ds_list_destroy(list);
-	return 1;
-}
-
-int test_list_destroy( const char *name ){
-	return 1;
-}
-
-void copy_int( void **a, void *b, ds_allocator_t *alloc ){
-	*a = alloc->malloc(sizeof(int));
-	
-	*((int*)a) = *((int*)b);
-}
-
-int test_list_insert_back( const char *name ){
-	ds_list_t list = NULL;
-	list = ds_list_create(sizeof(int),DS_FUNC_COPY, copy_int, DS_END);
-	int val = 5;
-	ds_list_insert_back(list, &val );
-	val = 6;
-	ds_list_insert_back(list, &val );
-
-	TINYTEST_ASSERT_MSG( list != NULL, "list creation failed" );
-	TINYTEST_ASSERT_MSG( list->head != NULL, "no elements were inserted");
-	TINYTEST_ASSERT_MSG( list->head->data != NULL, "value wasn't copied" );
-	TINYTEST_ASSERT_MSG( *((int*)list->head->data) == 5, "Value inserted in wrong order" );
-	TINYTEST_ASSERT_MSG( list->tail != NULL, "no elements were inserted");
-	TINYTEST_ASSERT_MSG( list->tail->data != NULL, "value wasn't copied" );
-	TINYTEST_ASSERT_MSG( *((int*)list->tail->data) == 6, "Value inserted in wrong order" );
-	return 1;
-}
-
-
-TINYTEST_START_SUITE(listsuite);
-  TINYTEST_ADD_TEST(test_list_create,NULL,NULL);
-  TINYTEST_ADD_TEST(test_list_destroy,NULL,NULL);
-  TINYTEST_ADD_TEST(test_list_insert_back,NULL,NULL);
-/*  TINYTEST_ADD_TEST(test_array_set,NULL,NULL);
-  TINYTEST_ADD_TEST(test_array_get,NULL,NULL);
-  TINYTEST_ADD_TEST(test_array_complex_struct,NULL,NULL);
-  TINYTEST_ADD_TEST(test_array_grow,NULL,NULL);*/
-TINYTEST_END_SUITE();
-
-
-
-
