@@ -10,6 +10,7 @@ struct ds_array_s{
 	size_t capacity; /* total capacity */
 	ds_ctor_f ctor;
 	ds_dtor_f dtor;
+	ds_copy_f copy;
 	ds_move_f move;
 	ds_error_f err;
 	ds_allocator_t* allocator;
@@ -36,6 +37,7 @@ ds_array_t ds_array_create( size_t elem_size, size_t start_size, ... ){
 	ds_ctor_f _ctor = NULL;
 	ds_dtor_f _dtor = NULL;
 	ds_move_f _move = NULL;
+	ds_copy_f _copy = NULL;
 	ds_error_f _err = ds_error_stderr;
 	ds_allocator_t* allocator = NULL;
 	ds_array_t array = NULL;
@@ -61,6 +63,8 @@ ds_array_t ds_array_create( size_t elem_size, size_t start_size, ... ){
 				case DS_FUNC_ERR:
 					_err = va_arg(args, ds_error_f);
 					break;
+				case DS_FUNC_COPY:
+					_copy = va_arg(args,ds_copy_f);
 				default:
 					break;
 			}
@@ -75,6 +79,11 @@ ds_array_t ds_array_create( size_t elem_size, size_t start_size, ... ){
 		_err = ds_error_stderr;
 	}
 
+	if( _copy == NULL && _move == NULL ){
+		_err("You must provide a copy or move function");
+		return NULL;
+	}
+
 	array = (ds_array_t)allocator->calloc(1, sizeof( struct ds_array_s ));
 	if ( !array ) {
 		_err("unable to allocate memory for array structure" );
@@ -87,6 +96,7 @@ ds_array_t ds_array_create( size_t elem_size, size_t start_size, ... ){
 	array->ctor = _ctor;
 	array->dtor = _dtor;
 	array->move = _move;
+	array->copy = _copy;
 	array->err = _err;
 	array->data = allocator->calloc( elem_size, start_size );
 
@@ -96,8 +106,10 @@ ds_array_t ds_array_create( size_t elem_size, size_t start_size, ... ){
 	}
 
 	if( array->ctor != NULL ){
-		for( i = 0; i < start_size; i ++ ){
-			array->ctor( (array->data+i*elem_size), allocator );
+		for( i = 0; i < start_size; i ++ ){			
+			//void *data = array->data;
+			char *element = (char*)array->data+(i*elem_size);			
+			array->ctor( (void*)element, allocator );
 		}
 	}
 
@@ -117,7 +129,8 @@ void ds_array_destroy( ds_array_t *arr ){
 	if( !array ){ return; }
 	if( array->dtor != NULL ){
 		for( i = 0; i < array->capacity; i++ ){
-			array->dtor( (void*)(array->data+i*array->elem_size) , array->allocator );
+			char *element = (char*)array->data+(i*array->elem_size);
+			array->dtor( (void*)(element) , array->allocator );
 		}
 	}
 	array->allocator->free( array->data );
@@ -128,13 +141,14 @@ void ds_array_destroy( ds_array_t *arr ){
 
 void ds_array_grow( ds_array_t array, size_t amount ){
 	size_t old_cap = array->capacity;
-	int i = 0;
+	size_t i = 0;
 	array->data = array->allocator->realloc( array->data, (old_cap+amount)*array->elem_size );
 	/* TODO: run constructor on new memory */
-	memset( array->data+array->elem_size*old_cap,0, amount*array->elem_size );
+	char *bytes = (char*)array->data;
+	memset( bytes+array->elem_size*old_cap,0, amount*array->elem_size );
 	if( array->ctor != NULL ){
 		for( i = old_cap; i < amount; i++ ){
-			array->ctor( array->data+i*array->elem_size, array->allocator );
+			array->ctor( (char*)array->data+i*array->elem_size, array->allocator );
 		}
 	}
 	array->capacity = old_cap+amount;
@@ -155,7 +169,7 @@ size_t ds_array_calc_grow_size( size_t capacity, size_t idx ){
 
 void* ds_array_set( ds_array_t array, size_t idx, void *data ){
 	if( !array ) { return NULL; }
-	int offset = idx*array->elem_size;
+	size_t offset = idx*array->elem_size;
 	if( idx >= array->capacity ){
 		
 		size_t grow_by = ds_array_calc_grow_size( array->capacity, idx );
@@ -164,28 +178,29 @@ void* ds_array_set( ds_array_t array, size_t idx, void *data ){
 		/*array->err( "index %d is greater than the capacity of the array (%d)", idx, array->capacity  );*/
 	}
 	if( array->move ){
-		array->move( array->data+offset, data );
+		array->move( (char*)array->data+offset, data );
 	} else {
-		memcpy( array->data+offset, data, array->elem_size );
+		void *element = (char*)array->data+offset;
+		array->copy( &element,data,array->allocator);		
 	}
 	if( idx >= array->size ){
 		array->size = idx+1;
 	}
-	return (array->data + offset);
+	return ((char*)array->data + offset);
 }
 /*
  * 
  */
 void* ds_array_get( ds_array_t array, size_t idx ){
 	if( !array ) { return NULL; }
-	int offset = idx*array->elem_size;
+	size_t offset = idx*array->elem_size;
 	if( idx >= array->capacity ){
 		array->err( "index %d is greater than the capacity of the array (%d)", idx, array->capacity  );
 	}
 	if ( idx >= array->size ){
 		array->size = idx+1;
 	}
-	return (array->data + offset);
+	return ((char*)array->data + offset);
 }
 /*int  ds_array_grow( ds_array_t array, size_t idx ); */
 /*int  ds_array_shrink( ds_array_t array, size_t amount ); */
@@ -194,7 +209,7 @@ void* ds_array_foreach( ds_array_t array, ds_traverse_f func, void *user ){
 	if( !array ) { return NULL; }
 	void *ret;
 	for( i = 0; i < array->size; i++ ){
-		ret = func( array->data+i*array->elem_size, user );
+		ret = func( (char*)array->data+i*array->elem_size, user );
 		if ( ret ) { return ret; };
 	}
 

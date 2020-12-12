@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <memory.h>
 #include "tinytest.h"
 #include "array.h"
@@ -11,8 +12,14 @@ TINYTEST_DECLARE_SUITE(arraysuite);
  *
  **********/
 
+void int_copy( void **_to, void *_from ){
+	int *to = *(int**)_to;
+	int *from = (int*)_from;
+	*to = *from;
+}
+
 int test_array_create( const char *name ){
-	/*printf("Running %s\n", name );*/
+	printf("Running %s\n", name );
 	ds_array_t arr = NULL;
 	arr = ds_array_create( sizeof(int), 10, DS_END );
 	TINYTEST_ASSERT_MSG(arr, "array creation failed" );
@@ -21,9 +28,9 @@ int test_array_create( const char *name ){
 }
 
 int test_array_value_set_is_value_retrieved( const char *name ){
-	/*printf("Running %s\n", name );*/
+	printf("Running %s\n", name );
 	ds_array_t arr = NULL;
-	arr = ds_array_create( sizeof(int), 10, DS_END );
+	arr = ds_array_create( sizeof(int), 10, DS_FUNC_COPY, int_copy, DS_END );
 	int value_to_set = 4;
 	ds_array_set( arr, 0, &value_to_set );
     int value_retrieved = *((int*)ds_array_get( arr, 0 ));
@@ -33,7 +40,7 @@ int test_array_value_set_is_value_retrieved( const char *name ){
 }
 
 int test_array_destroy(const char *name ){
-	/*printf("Running %s\n", name );*/
+	printf("Running %s\n", name );
 	ds_array_t arr = ds_array_create(sizeof(int),10, DS_END);
 
 	TINYTEST_ASSERT_MSG( arr, "array creation failed" );
@@ -62,14 +69,28 @@ void bigval_dtor( void *_obj, ds_allocator_t *allocator ){
 	}
 }
 
+void bigval_copy( void **_to, void *_from, ds_allocator_t *allocator){
+	bigval *from = (bigval*)_from;
+	bigval *to = *(bigval**)_to;
+
+	to->value = from->value;
+	if( from->str != NULL ){
+		size_t len = strlen(from->str);
+		to->str = allocator->calloc(strlen(from->str),1);
+		memcpy(to->str,from->str,len);
+	}
+	
+}
+
 int test_array_complex_struct( const char *name ){
-	/*printf("Running %s\n", name );*/
+	printf("Running %s\n", name );
 	bigval *tmp;
 	bigval tmp2;
 	memset(&tmp2, 0, sizeof(bigval) );
 	ds_array_t array = ds_array_create( sizeof(bigval), 2,
 					    DS_FUNC_CTOR, bigval_ctor,
 					    DS_FUNC_DTOR, bigval_dtor,
+						DS_FUNC_COPY, bigval_copy,
 					    DS_END );
 	TINYTEST_ASSERT_MSG( array, "array creation failed" );
 	
@@ -95,7 +116,7 @@ int test_array_complex_struct( const char *name ){
 	ds_array_set( array, 2, tmp );
     size_t size = ds_array_size(array);
     size_t capacity = ds_array_capacity(array);
-	printf("new size %ld", size );
+	printf("new size %zd", size );
 	TINYTEST_ASSERT_MSG( capacity == 4, "array did not grow");
 
 	TINYTEST_ASSERT_MSG( memcmp( ds_array_get(array,3), &tmp2, sizeof(bigval) ) == 0, "last val not properly cleared");
@@ -108,8 +129,11 @@ int test_array_complex_struct( const char *name ){
 
 }
 
+
+
 int test_array_grow( const char *name ){
-	ds_array_t array = ds_array_create( sizeof( int ), 10, DS_END );
+	printf("Running %s\n", name);
+	ds_array_t array = ds_array_create( sizeof( int ), 10, DS_FUNC_COPY, int_copy, DS_END );
 	int v = 4;
 	int v9 = 5;
 	int *p = NULL;
